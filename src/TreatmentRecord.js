@@ -1,5 +1,7 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
+
 function TreatmentRecord(props) {
+    const url = "http://localhost:8080/treatments";
     const defaultTreatment = {
         treatId: "",
         name: "",
@@ -14,6 +16,26 @@ function TreatmentRecord(props) {
       const [treatments, setTreatments] = useState([]);
       const [filteredTreatments, setFilteredTreatments] = useState([])
       //const [Name, setName] = useState ("");
+
+      const getTreatments = () => {
+        const requestOptions = {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        }
+        fetch(`${url}/${props.patientDetails.caseNo}`, requestOptions)
+            .then(response => response.json())
+            .then(res => {
+              setTreatments(res.data)
+              setFilteredTreatments(res.data)
+            })
+            .catch(error => {
+                console.log("Error ", error)
+            })
+    }
+
+    useEffect(() => {
+        getTreatments()
+    }, [])
  
       const handleOnchange = (event) => {
         let name = event.target.name;
@@ -28,9 +50,24 @@ function TreatmentRecord(props) {
  
       const handleSubmit = () => {
           let data = treatment;
-          data.treatId = generateTreatId();
-          setTreatments(prevTreatments => [...prevTreatments, treatment])
-          setFilteredTreatments(prevTreatments => [...prevTreatments, treatment])
+          data.treatId = generateTreatId().toString();
+          data.caseNo = props.patientDetails.caseNo;
+        //   setTreatments(prevTreatments => [...prevTreatments, treatment])
+        //   setFilteredTreatments(prevTreatments => [...prevTreatments, treatment])
+        const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(treatment)
+        }
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(res => {
+              console.log("Success ", res)
+            })
+            .catch(error => {
+                console.log("Error ", error)
+            })
+        getTreatments();
       }
  
       const generateTreatId = () => {

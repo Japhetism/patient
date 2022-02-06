@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
  
  
 function PatientRecord({setPatientDetails}) {
+    const url = 'http://localhost:8080/patients'
     // case no, name, email, phone
     const defaultPatient = {
       caseNo: "",
@@ -14,6 +15,26 @@ function PatientRecord({setPatientDetails}) {
     const [patients, setPatients] = useState([]);
     const [filteredPatients, setFilteredPatients] = useState([])
     //const [Name, setName] = useState ("");
+
+    const getPatients = () => {
+        const requestOptions = {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+        }
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(res => {
+              setPatients(res.data)
+              setFilteredPatients(res.data)
+            })
+            .catch(error => {
+                console.log("Error ", error)
+            })
+    }
+
+    useEffect(() => {
+        getPatients()
+    }, [])
  
     const handleOnchange = (event) => {
       let name = event.target.name;
@@ -29,8 +50,22 @@ function PatientRecord({setPatientDetails}) {
     const handleSubmit = () => {
         let data = patient;
         data.caseNo = generateCaseNumber();
-        setPatients(prevPatients => [...prevPatients, patient])
-        setFilteredPatients(prevPatients => [...prevPatients, patient])
+        // setPatients(prevPatients => [...prevPatients, patient])
+        // setFilteredPatients(prevPatients => [...prevPatients, patient])
+        const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(patient)
+        }
+        fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(res => {
+              console.log("Success ", res)
+            })
+            .catch(error => {
+                console.log("Error ", error)
+            })
+        getPatients();
     }
  
     const generateCaseNumber = () => {
